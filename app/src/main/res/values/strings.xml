@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">MyMessenger</string>
+    <string name="action_settings">Settings</string>
+    <string name="hint">Type text here ...</string>
+</resources>

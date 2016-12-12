@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context=".ChatActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:layout_height="?attr/actionBarSize"
+            android:background="?attr/colorPrimary"
+            app:popupTheme="@style/AppTheme.PopupOverlay" />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+            <FrameLayout
+                android:layout_above="@+id/rl"
+                android:layout_alignParentTop="true"
+                android:id="@+id/my_recycler_view"
+                android:layout_marginTop="?attr/actionBarSize"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+                <android.support.v7.widget.RecyclerView
+                    android:id="@+id/chat"
+                    android:background="#eee"
+                    android:scrollbars="vertical"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:scrollbarAlwaysDrawVerticalTrack="true"
+                    />
+                    <FrameLayout
+                        android:layout_gravity="bottom"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content">
+                        <HorizontalScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+                            android:background="#fff"
+                            android:fillViewport="true"
+                            android:isScrollContainer="true"
+                            android:paddingLeft="@dimen/dp40"
+                            android:layout_gravity="right"
+                            android:layoutDirection="ltr"
+                            android:layout_width="fill_parent"
+                            android:layout_height="wrap_content">
+                            <LinearLayout
+                                android:isScrollContainer="true"
+                                android:background="#fff"
+                                android:id="@+id/emojiPanel"
+                                android:visibility="gone"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:orientation="horizontal">
+
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em2"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em2"/>
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em3"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em3"/>
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em4"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em4"/>
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em5"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em5"/>
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em6"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em6"/>
+                                <ImageView
+                                    android:onClick="setEmoji"
+                                    android:id="@+id/em7"
+                                    android:layout_margin="5dp"
+                                    android:layout_width="@dimen/dp30"
+                                    android:layout_height="@dimen/dp30"
+                                    android:src="@drawable/em7"/>
+
+                            </LinearLayout>
+                        </HorizontalScrollView>
+
+                        <ToggleButton
+                            android:layout_margin="@dimen/ptop"
+                            android:layout_width="@dimen/dp30"
+                            android:layout_height="@dimen/dp30"
+                            android:id="@+id/closeOpen"
+                            android:background="@drawable/close_open"
+                            android:textOff=""
+                            android:textOn=""/>
+                    </FrameLayout>
+
+
+            </FrameLayout>
+            <RelativeLayout
+                android:layout_gravity="bottom"
+                android:background="#fff"
+                android:id="@+id/rl"
+                android:paddingLeft="@dimen/mini_square"
+                android:paddingRight="@dimen/mini_square"
+                android:paddingTop="@dimen/ptop"
+                android:layout_width="match_parent"
+                android:layout_height="@dimen/square2"
+                android:layout_alignParentBottom="true"
+                >
+                <ToggleButton
+                    android:layout_width="@dimen/square"
+                    android:layout_height="@dimen/square"
+                    android:id="@+id/toggleButton"
+                    android:background="@drawable/toggle_selector"
+                    android:textOff=""
+                    android:textOn=""/>
+                <EditText
+                    android:hint="@string/hint"
+                    android:background="#00000000"
+                    android:id="@+id/my_edit_text"
+                    android:layout_marginLeft="@dimen/mleft"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:maxHeight="@dimen/maxheight"
+                    android:layout_alignParentLeft="true"
+                    android:layout_marginRight="@dimen/square2"
+                    android:layout_alignBottom="@+id/send"
+                    android:layout_alignParentTop="true" />
+
+
+                <Button
+                    android:gravity="center"
+                    android:layout_width="@dimen/square"
+                    android:layout_height="@dimen/square"
+                    android:layout_alignParentRight="true"
+                    android:id="@+id/send"
+                    android:background="@drawable/send_disabled"
+                    />
+
+
+            </RelativeLayout>
+        </RelativeLayout>
+
+
+    </FrameLayout>
+
+
+
+</android.support.design.widget.CoordinatorLayout>
