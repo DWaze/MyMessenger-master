@@ -2,12 +2,14 @@ package com.srdeveloppement.atelier.mymessenger;
 
 import android.Manifest;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.net.wifi.WifiManager;
 import android.os.Bundle;
-import android.os.Environment;
+import android.os.Handler;
+import android.preference.PreferenceManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
@@ -35,11 +37,17 @@ import com.google.android.gms.appindexing.Action;
 import com.google.android.gms.appindexing.AppIndex;
 import com.google.android.gms.appindexing.Thing;
 import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import com.nbsp.materialfilepicker.MaterialFilePicker;
+import com.nbsp.materialfilepicker.ui.FilePickerActivity;
 
 import java.io.File;
 import java.net.InetAddress;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
+import java.util.regex.Pattern;
 
 public class ChatActivity extends AppCompatActivity {
 
@@ -51,21 +59,22 @@ public class ChatActivity extends AppCompatActivity {
     private static final int PERMISSIONS_REQUEST_EXTERNAL_STORAGEW = 101;
     private LinearLayoutManager mLayoutManager;
     EditText area;
-    EmmeteurIP em= new EmmeteurIP(null); ;
+    EmmeteurIP em= new EmmeteurIP(null);
     Button send;
     public static String emojiValue;
-    public Drawable textDrawable;
-    public ImageView pub_iv;
     String SenderMsg;
-    String ReciverrMsg;
     Intent intent;
     TextView senderTv;
     TextView reciverTv;
-    ToggleButton toggle, closeOpen;
-    int a;
+    int i =0;
+    public static MessageQuerry messageQuerry;
+    Button toggle;
+    ToggleButton closeOpen;
+    File fileToSend;
+    SharedPreferences sharedPref;
     ImageView em1, em2, em3, em4, em5, em6, em7;
     LinearLayout emojiPanel;
-    public static ArrayList<Discution> Disc = new ArrayList<Discution>();
+    public static ArrayList<Discution> Disc ;
     /**
      * ATTENTION: This was auto-generated to implement the App Indexing API.
      * See https://g.co/AppIndexing/AndroidStudio for more information.
@@ -75,6 +84,21 @@ public class ChatActivity extends AppCompatActivity {
     public static void setEmeteurIP(InetAddress emeteurIP) {
         EmeteurIP = emeteurIP;
     }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (requestCode == 1 && resultCode == RESULT_OK) {
+            String filePath = data.getStringExtra(FilePickerActivity.RESULT_FILE_PATH);
+            fileToSend = new File(filePath);
+            messageQuerry.setFileName(fileToSend.getName());
+            messageQuerry.setFileFormat("");
+            messageQuerry.setQuerry(2);
+            messageQuerry.setMessage(fileToSend.getName());
+            // Do anything with fileToSend
+        }
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -82,8 +106,7 @@ public class ChatActivity extends AppCompatActivity {
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-
-
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
         mRecyclerView = (RecyclerView) findViewById(R.id.chat);
         emojiPanel = (LinearLayout) findViewById(R.id.emojiPanel);
         em2 = (ImageView) findViewById(R.id.em2);
@@ -92,8 +115,9 @@ public class ChatActivity extends AppCompatActivity {
         em5 = (ImageView) findViewById(R.id.em5);
         em6 = (ImageView) findViewById(R.id.em6);
         em7 = (ImageView) findViewById(R.id.em7);
-        closeOpen = (ToggleButton) findViewById(R.id.closeOpen);
-
+        messageQuerry = new MessageQuerry("",-1,"","");
+        closeOpen = (ToggleButton)findViewById(R.id.closeOpen);
+        toggle = (Button) findViewById(R.id.toggleButton);
         closeOpen.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
             public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
                 if (isChecked) {
@@ -104,6 +128,30 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
+        Disc = new ArrayList<Discution>();
+
+        Gson gson = new Gson();
+        String response=sharedPref.getString("MyConversation" , "");
+        if(!response.equals("")){
+            Disc=gson.fromJson(response, new TypeToken<List<Discution>>()
+            {
+            }.getType());
+        }
+
+        toggle.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                new MaterialFilePicker()
+                        .withActivity(ChatActivity.this)
+                        .withRequestCode(1)
+                        .withFilter(Pattern.compile(".*\\.*")) // Filtering files and directories by file name using regexp
+                        .withFilterDirectories(true) // Set directories filterable (false by default)
+                        .withHiddenFiles(true) // Show hidden files and folders
+                        .start();
+            }
+        });
+
+
 
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
@@ -128,8 +176,10 @@ public class ChatActivity extends AppCompatActivity {
         mRecyclerView.setAdapter(mAdapter);
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         String ip = "/"+Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
-        LesteningRequests requests =new LesteningRequests(mAdapter,mRecyclerView,area,send,em,ip);
+        LesteningRequests requests =new LesteningRequests(mAdapter,mRecyclerView,area,send,em,ip,messageQuerry,sharedPref);
         requests.start();
+        ListeningTCP ft = new ListeningTCP(new Handler(),mAdapter,mRecyclerView,area,send,messageQuerry);
+        ft.start();
 
 
         area.addTextChangedListener(new TextWatcher() {
@@ -146,6 +196,10 @@ public class ChatActivity extends AppCompatActivity {
                 Log.d("key", "beforeTextChanged start :" + start + "  after :" + after);
             }
 
+
+
+
+
             public void afterTextChanged(Editable s) {
                 if (area.getText().toString().trim().equals("")) {
                     send.setBackgroundResource(R.drawable.send_disabled);
@@ -160,28 +214,45 @@ public class ChatActivity extends AppCompatActivity {
                             if (isEmpty(area)) {
 
                             } else {
-
-                                //senderTv.setBackground(getResources().getDrawable(R.drawable.mytext_sender));
-                                SenderMsg = area.getText().toString();
-                                Disc.add(new Discution(Calendar.getInstance(), "", false, SenderMsg, true));
-                                mAdapter.loadNewData(Disc);
-                                mRecyclerView.scrollToPosition(mAdapter.getItemCount() - 1);
-                                String message = area.getText().toString();
-                                area.setText("");
-                                send.setBackgroundResource(R.drawable.send_disabled);
-                                MessageQuerry messageQuerry = new MessageQuerry("test.txt",2,"test",".txt");
-                                File Source = Environment.getExternalStorageDirectory();
-                                SendingMessage msg = new SendingMessage(messageQuerry,Source.getAbsolutePath()+"/test.txt",em);
-                                msg.start();
-
-
+                                if(messageQuerry.getQuerry()==2){
+                                    SenderMsg = area.getText().toString();
+                                    Disc.add(new Discution(Calendar.getInstance(), "", false, messageQuerry.getFileName(), true));
+                                    SharedPreferences.Editor prefsEditor = sharedPref.edit();
+                                    Gson gson = new Gson();
+                                    String json = gson.toJson(Disc);
+                                    prefsEditor.putString("MyConversation", json);
+                                    prefsEditor.commit();
+                                    mAdapter.loadNewData(Disc);
+                                    mRecyclerView.scrollToPosition(mAdapter.getItemCount() - 1);
+                                    String message = area.getText().toString();
+                                    messageQuerry.setMessage(messageQuerry.getMessage()+""+message);
+                                    area.setText("");
+                                    send.setBackgroundResource(R.drawable.send_disabled);
+                                    SendingMessage msg = new SendingMessage(messageQuerry,fileToSend.getAbsolutePath(),em);
+                                    msg.start();
+                                }else{
+                                    messageQuerry.setMessage(area.getText().toString());
+                                    messageQuerry.setFileFormat("");
+                                    messageQuerry.setFileName("");
+                                    messageQuerry.setQuerry(1);
+                                    SenderMsg = area.getText().toString();
+                                    Disc.add(new Discution(Calendar.getInstance(), "", false, SenderMsg, true));
+                                    SharedPreferences.Editor prefsEditor = sharedPref.edit();
+                                    Gson gson = new Gson();
+                                    String json = gson.toJson(Disc);
+                                    prefsEditor.putString("MyConversation", json);
+                                    prefsEditor.commit();
+                                    mAdapter.loadNewData(Disc);
+                                    mRecyclerView.scrollToPosition(mAdapter.getItemCount() - 1);
+                                    area.setText("");
+                                    send.setBackgroundResource(R.drawable.send_disabled);
+                                    SendingMessage msg = new SendingMessage(messageQuerry,"",em);
+                                    msg.start();
+                                }
                             }
-
-
                         }
                     });
                 }
-
                 Log.d("key", "afterTextChange last char" + s);
             }
 
@@ -195,7 +266,6 @@ public class ChatActivity extends AppCompatActivity {
 
         senderTv = (TextView) findViewById(R.id.senderText);
         reciverTv = (TextView) findViewById(R.id.reciverText);
-        toggle = (ToggleButton) findViewById(R.id.toggleButton);
 
 
         // ATTENTION: This was auto-generated to implement the App Indexing API.
@@ -263,6 +333,13 @@ public class ChatActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
         if (id == R.id.action_settings) {
+            Disc = new ArrayList<Discution>();
+            mAdapter.loadNewData(Disc);
+            SharedPreferences.Editor prefsEditor = sharedPref.edit();
+            Gson gson = new Gson();
+            String json = gson.toJson(Disc);
+            prefsEditor.putString("MyConversation", json);
+            prefsEditor.commit();
             return true;
         }
         return super.onOptionsItemSelected(item);

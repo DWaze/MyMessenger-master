@@ -1,25 +1,23 @@
 package com.srdeveloppement.atelier.mymessenger;
 
-import android.os.Environment;
+import android.content.SharedPreferences;
 import android.os.Handler;
 import android.support.v7.widget.RecyclerView;
 import android.widget.Button;
 import android.widget.EditText;
 
-import java.io.BufferedInputStream;
-import java.io.BufferedOutputStream;
+import com.google.gson.Gson;
+
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
-import java.net.ServerSocket;
-import java.net.Socket;
 import java.util.Calendar;
+
+import static com.srdeveloppement.atelier.mymessenger.ChatActivity.Disc;
 
 /**
  * Created by lhadj on 12/11/2016.
@@ -34,9 +32,10 @@ public class LesteningRequests extends Thread {
     RecyclerView recyclerView = null;
     byte[] buffer =null;
     DatagramSocket socketRecieve;
-    MessageQuerry msg;
     EmmeteurIP ip ;
     String myIP;
+    MessageQuerry msg ;
+    SharedPreferences sharedPreferences;
 
     public static Object deserialize(byte[] bytes) throws IOException, ClassNotFoundException {
         try(ByteArrayInputStream b = new ByteArrayInputStream(bytes)){
@@ -55,7 +54,7 @@ public class LesteningRequests extends Thread {
         }
     }
 
-    public LesteningRequests(MyAdapter adapter,RecyclerView recyclerView,EditText area,Button send,EmmeteurIP ip,String myIp) {
+    public LesteningRequests(MyAdapter adapter, RecyclerView recyclerView, EditText area, Button send, EmmeteurIP ip, String myIp, MessageQuerry msg1, SharedPreferences sharedPreferences) {
         buffer = new byte[6000];
         this.adapter=adapter;
         this.recyclerView = recyclerView;
@@ -64,6 +63,8 @@ public class LesteningRequests extends Thread {
         hn = new Handler();
         this.ip =ip;
         this.myIP =myIp;
+        this.msg=msg1;
+        this.sharedPreferences=sharedPreferences;
     }
 
     @Override
@@ -87,62 +88,35 @@ public class LesteningRequests extends Thread {
                     Object mObject;
                     mObject=deserialize(messageByte);
                     msg=(MessageQuerry)mObject;
+                    ChatActivity.messageQuerry.setMessage(msg.getMessage());
+                    ChatActivity.messageQuerry.setFileName(msg.getFileName());
+                    ChatActivity.messageQuerry.setQuerry(msg.getQuerry());
 
                     switch (msg.getQuerry()){
                         case 1 :
-                            ChatActivity.Disc.add(new Discution(Calendar.getInstance(), msg.getMessage(),true,"",false));
+                            Disc.add(new Discution(Calendar.getInstance(), msg.getMessage(),true,"",false));
+                            SharedPreferences.Editor prefsEditor = sharedPreferences.edit();
+                            Gson gson = new Gson();
+                            String json = gson.toJson(Disc);
+                            prefsEditor.putString("MyConversation", json);
+                            prefsEditor.commit();
                             hn.post(new Runnable() {
                                 @Override
                                 public void run() {
-                                    adapter.loadNewData(ChatActivity.Disc);
+                                    adapter.loadNewData(Disc);
                                     recyclerView.scrollToPosition(adapter.getItemCount() - 1);
                                     area.setText("");
                                     send.setBackgroundResource(R.drawable.send_disabled);
                                 }
                             });
                             break;
-                        case 2 :
-                            DatagramSocket sc = new DatagramSocket();
-                            MessageQuerry ms = new MessageQuerry("",3,"","");
-                            Object m =ms ;
-                            byte[] conect= serialize(m);
-                            sleep(300);
-                            DatagramPacket pk = new DatagramPacket(conect,conect.length, ip.getAdr(),9999);
-                            sc.send(pk);
-                            sc.close();
-                                ServerSocket socket = new ServerSocket(9999);
-                                Socket s = socket.accept();
-                                BufferedInputStream in = new BufferedInputStream(s.getInputStream());
-                                File Source = Environment.getExternalStorageDirectory();
-                                String Path = Source.getAbsolutePath()+"/MyMessenger/"+msg.getFileName()+msg.getFileFormat();
-                                BufferedOutputStream out = new BufferedOutputStream(new FileOutputStream(new File(Path)));
-                                while (true){
-                                    int line = in.read();
-                                    if(line<0){
-                                        break;
-                                    }
-                                    out.write(line);
-                                }
-                                ChatActivity.Disc.add(new Discution(Calendar.getInstance(), msg.getFileName()+msg.getFileFormat(),true,"",false));
-                                hn.post(new Runnable() {
-                                    @Override
-                                    public void run() {
-                                        adapter.loadNewData(ChatActivity.Disc);
-                                        recyclerView.scrollToPosition(adapter.getItemCount() - 1);
-                                        area.setText("");
-                                        send.setBackgroundResource(R.drawable.send_disabled);
-                                    }
-                                });
-                                socket.close();
-                                s.close();
+
                     }
                 }
                 }
             } catch (IOException e) {
                 e.printStackTrace();
             } catch (ClassNotFoundException e) {
-                e.printStackTrace();
-            } catch (InterruptedException e) {
                 e.printStackTrace();
             } finally {
                 socketRecieve.close();

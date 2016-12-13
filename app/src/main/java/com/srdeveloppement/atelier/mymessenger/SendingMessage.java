@@ -65,16 +65,11 @@ public class SendingMessage extends Thread {
                         socket.send(packet);
                         break;
                     case 2 :
-                        DatagramSocket sc = new DatagramSocket();
-                        MessageQuerry ms = new MessageQuerry("",2,"","");
-                        Object m =ms ;
-                        byte[] conect= serialize(m);
-                        DatagramPacket pk = new DatagramPacket(conect,conect.length, InetAddress.getByName("192.168.43.255"),9999);
-                        sc.setBroadcast(true);
-                        sc.send(pk);
-                        sleep(20000);
-                        while(true){
-                            if(em.getAdr()!=null){
+                        socket = new DatagramSocket();
+                        packet = new DatagramPacket(msgByte,msgByte.length, InetAddress.getByName("192.168.43.255"),9999);
+                        socket.setBroadcast(true);
+                        socket.send(packet);
+                        sleep(1000);
                             Socket sock = new Socket(em.getAdr(),1999);
                             BufferedInputStream in = new BufferedInputStream(new FileInputStream(new File(path)));
                             BufferedOutputStream out = new BufferedOutputStream(sock.getOutputStream());
@@ -84,11 +79,12 @@ public class SendingMessage extends Thread {
                                     break;
                                 out.write(line);
                             }
-                            sock.close();
-                                break;
-                            }
-                        }
-
+                        ChatActivity.messageQuerry.setQuerry(-1);
+                        ChatActivity.messageQuerry.setFileName("");
+                        ChatActivity.messageQuerry.setMessage("");
+                        in.close();
+                        out.close();
+                        sock.close();
                         break;
                 }
 

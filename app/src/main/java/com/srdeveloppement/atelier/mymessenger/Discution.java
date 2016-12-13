@@ -1,11 +1,12 @@
 package com.srdeveloppement.atelier.mymessenger;
 
+import java.io.Serializable;
 import java.util.Calendar;
 
 /**
  * Created by Sam on 08/03/2016.
  */
-public class Discution {
+public class Discution implements Serializable {
     boolean senderVS;
     private String senderText;
     boolean reciverVS;

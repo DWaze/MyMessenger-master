@@ -133,13 +133,12 @@
                 android:layout_height="@dimen/square2"
                 android:layout_alignParentBottom="true"
                 >
-                <ToggleButton
+                <Button
                     android:layout_width="@dimen/square"
                     android:layout_height="@dimen/square"
                     android:id="@+id/toggleButton"
-                    android:background="@drawable/toggle_selector"
-                    android:textOff=""
-                    android:textOn=""/>
+                    android:background="@drawable/upload"
+                    />
                 <EditText
                     android:hint="@string/hint"
                     android:background="#00000000"
