@@ -64,9 +64,11 @@ public class ChatActivity extends AppCompatActivity {
     public static String emojiValue;
     String SenderMsg;
     Intent intent;
+    Gson gson;
     TextView senderTv;
     TextView reciverTv;
-    int i =0;
+    String response;
+    String json;
     public static MessageQuerry messageQuerry;
     Button toggle;
     ToggleButton closeOpen;
@@ -128,15 +130,6 @@ public class ChatActivity extends AppCompatActivity {
                 }
             }
         });
-        Disc = new ArrayList<Discution>();
-
-        Gson gson = new Gson();
-        String response=sharedPref.getString("MyConversation" , "");
-        if(!response.equals("")){
-            Disc=gson.fromJson(response, new TypeToken<List<Discution>>()
-            {
-            }.getType());
-        }
 
         toggle.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -171,9 +164,19 @@ public class ChatActivity extends AppCompatActivity {
         mRecyclerView.setLayoutManager(mLayoutManager);
         area = (EditText) findViewById(R.id.my_edit_text);
 
+        Disc = new ArrayList<Discution>();
+        gson = new Gson();
+        response=sharedPref.getString("MyConversation" , "");
+        if(!response.equals("")){
+            Disc=gson.fromJson(response, new TypeToken<List<Discution>>()
+            {
+            }.getType());
+        }
 
         mAdapter = new MyAdapter(Disc);
         mRecyclerView.setAdapter(mAdapter);
+
+
         WifiManager wm = (WifiManager) getSystemService(WIFI_SERVICE);
         String ip = "/"+Formatter.formatIpAddress(wm.getConnectionInfo().getIpAddress());
         LesteningRequests requests =new LesteningRequests(mAdapter,mRecyclerView,area,send,em,ip,messageQuerry,sharedPref);
@@ -216,10 +219,18 @@ public class ChatActivity extends AppCompatActivity {
                             } else {
                                 if(messageQuerry.getQuerry()==2){
                                     SenderMsg = area.getText().toString();
+                                    Disc = new ArrayList<Discution>();
+                                    gson = new Gson();
+                                    response=sharedPref.getString("MyConversation" , "");
+                                    if(!response.equals("")){
+                                        Disc=gson.fromJson(response, new TypeToken<List<Discution>>()
+                                        {
+                                        }.getType());
+                                    }
                                     Disc.add(new Discution(Calendar.getInstance(), "", false, messageQuerry.getFileName(), true));
                                     SharedPreferences.Editor prefsEditor = sharedPref.edit();
-                                    Gson gson = new Gson();
-                                    String json = gson.toJson(Disc);
+                                    gson = new Gson();
+                                    json = gson.toJson(Disc);
                                     prefsEditor.putString("MyConversation", json);
                                     prefsEditor.commit();
                                     mAdapter.loadNewData(Disc);
@@ -236,10 +247,18 @@ public class ChatActivity extends AppCompatActivity {
                                     messageQuerry.setFileName("");
                                     messageQuerry.setQuerry(1);
                                     SenderMsg = area.getText().toString();
+                                    Disc = new ArrayList<Discution>();
+                                    gson = new Gson();
+                                    response=sharedPref.getString("MyConversation" , "");
+                                    if(!response.equals("")){
+                                        Disc=gson.fromJson(response, new TypeToken<List<Discution>>()
+                                        {
+                                        }.getType());
+                                    }
                                     Disc.add(new Discution(Calendar.getInstance(), "", false, SenderMsg, true));
                                     SharedPreferences.Editor prefsEditor = sharedPref.edit();
-                                    Gson gson = new Gson();
-                                    String json = gson.toJson(Disc);
+                                    gson = new Gson();
+                                    json = gson.toJson(Disc);
                                     prefsEditor.putString("MyConversation", json);
                                     prefsEditor.commit();
                                     mAdapter.loadNewData(Disc);
